@@ -16,7 +16,8 @@ if [ "$LANGUAGE" == "zh" ]; then
     MSG_REMOVE_ABSEIL="卸载 ROS 提供的 abseil-cpp 以防止冲突"
     MSG_REMOVE_MACROS="删除线程注解宏"
     MSG_BUILD="构建并安装"
-    MSG_DONE="Cartographer ROS 编译完成。"
+    MSG_ADD_BASHRC="添加 source 命令到 ~/.bashrc"
+    MSG_DONE="Cartographer ROS 编译完成，并已更新 ~/.bashrc。请重新打开终端，或手动执行 'source ~/.bashrc' 以使更改生效。"
 else
     MSG_UPDATE="Updating system packages"
     MSG_INSTALL_TOOLS="Installing necessary tools"
@@ -29,7 +30,8 @@ else
     MSG_REMOVE_ABSEIL="Removing ROS-provided abseil-cpp to avoid conflicts"
     MSG_REMOVE_MACROS="Removing thread annotation macros"
     MSG_BUILD="Building and installing"
-    MSG_DONE="Cartographer ROS compilation complete."
+    MSG_ADD_BASHRC="Adding source command to ~/.bashrc"
+    MSG_DONE="Cartographer ROS compilation complete, and ~/.bashrc updated. Please reopen your terminal or manually run 'source ~/.bashrc' to apply the changes."
 fi
 
 # 开始执行
@@ -71,5 +73,16 @@ find ./src/cartographer_ros -type f -name "*.h" -o -name "*.cc" | xargs sed -i '
 
 echo $MSG_BUILD
 catkin_make_isolated --install --use-ninja
+
+# 检查是否已经在 .bashrc 中添加了 source 命令
+if ! grep -Fxq "source ~/cartographer_ws/install_isolated/setup.bash" ~/.bashrc
+then
+    # 如果没有添加，则添加
+    echo $MSG_ADD_BASHRC
+    echo "source ~/cartographer_ws/install_isolated/setup.bash" >> ~/.bashrc
+fi
+
+# 立即刷新终端
+source ~/.bashrc
 
 echo $MSG_DONE
