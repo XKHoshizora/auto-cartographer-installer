@@ -15,6 +15,7 @@ if [ "$LANGUAGE" == "zh" ]; then
     MSG_INSTALL_ABSEIL="手动安装 abseil-cpp"
     MSG_REMOVE_ABSEIL="卸载 ROS 提供的 abseil-cpp 以防止冲突"
     MSG_REMOVE_MACROS="删除线程注解宏"
+    MSG_INSTALL_PTHREAD="安装 pthread 开发库"
     MSG_BUILD="构建并安装"
     MSG_ADD_BASHRC="添加 source 命令到 ~/.bashrc"
     MSG_DONE="Cartographer ROS 编译完成，并已更新 ~/.bashrc。请重新打开终端，或手动执行 'source ~/.bashrc' 以使更改生效。"
@@ -29,6 +30,7 @@ else
     MSG_INSTALL_ABSEIL="Manually installing abseil-cpp"
     MSG_REMOVE_ABSEIL="Removing ROS-provided abseil-cpp to avoid conflicts"
     MSG_REMOVE_MACROS="Removing thread annotation macros"
+    MSG_INSTALL_PTHREAD="Installing pthread development library"
     MSG_BUILD="Building and installing"
     MSG_ADD_BASHRC="Adding source command to ~/.bashrc"
     MSG_DONE="Cartographer ROS compilation complete, and ~/.bashrc updated. Please reopen your terminal or manually run 'source ~/.bashrc' to apply the changes."
@@ -59,7 +61,7 @@ sed -i 's/<build_depend>libabsl-dev<\/build_depend>/<!-- <build_depend>libabsl-d
 sed -i 's/<exec_depend>libabsl-dev<\/exec_depend>/<!-- <exec_depend>libabsl-dev<\/exec_depend> -->/' src/cartographer/package.xml
 
 echo $MSG_INSTALL_DEPS
-rosdep install --from-paths src --ignore-src --rosdistro=${ROS_DISTRO}
+rosdep install --from-paths src --ignore-src --rosdistro=${ROS_DISTRO} -y
 
 echo $MSG_INSTALL_ABSEIL
 src/cartographer/scripts/install_abseil.sh
@@ -70,6 +72,13 @@ sudo apt-get remove -y ros-${ROS_DISTRO}-abseil-cpp
 echo $MSG_REMOVE_MACROS
 find ./src/cartographer -type f -name "*.h" -o -name "*.cc" | xargs sed -i 's/LOCKS_EXCLUDED([^)]*)//g; s/GUARDED_BY([^)]*)//g; s/EXCLUSIVE_LOCKS_REQUIRED([^)]*)//g'
 find ./src/cartographer_ros -type f -name "*.h" -o -name "*.cc" | xargs sed -i 's/GUARDED_BY([^)]*)//g; s/LOCKS_EXCLUDED([^)]*)//g; s/EXCLUSIVE_LOCKS_REQUIRED([^)]*)//g'
+
+echo $MSG_INSTALL_PTHREAD
+sudo apt-get install -y libpthread-stubs0-dev build-essential
+
+# 修改 CMakeLists.txt 文件
+echo "find_package(Threads REQUIRED)" >> src/cartographer_ros/cartographer_ros/CMakeLists.txt
+echo "target_link_libraries(${PROJECT_NAME} \${CMAKE_THREAD_LIBS_INIT})" >> src/cartographer_ros/cartographer_ros/CMakeLists.txt
 
 echo $MSG_BUILD
 catkin_make_isolated --install --use-ninja
