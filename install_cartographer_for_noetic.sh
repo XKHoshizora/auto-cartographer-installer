@@ -94,4 +94,4 @@ fi
 # 立即刷新终端
 source ~/.bashrc
 
-echo $MSG_DONE
+echo -e "\n${MSG_DONE}"
